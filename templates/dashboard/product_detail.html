@@ -1,0 +1,39 @@
+<!-- product_detail.html -->
+
+<h2>Product Details: {{ product.name }}</h2>
+
+<ul>
+    <li>Price: {{ product.price }}</li>
+    <li>Stock Value: <span id="stock_value">{{ stock_value }}</span></li>
+    <li>Discounted Price: {{ discounted_price }}</li>
+    <li>Reorder Status: {{ reorder_status }}</li>
+</ul>
+
+<!-- Button to trigger stock value recalculation -->
+<button id="recalculate_stock">Recalculate Stock Value</button>
+
+<script>
+document.getElementById('recalculate_stock').addEventListener('click', function() {
+    var product_id = '{{ product.id }}';  // Get product ID from template
+    var price = {{ product.price }};
+    var quantity = {{ product.quantity_in_stock }};
+
+    // Make an AJAX request to recalculate the stock value
+    fetch(`/recalculate_stock/${product_id}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',  // CSRF token for security
+        },
+        body: JSON.stringify({
+            'price': price,
+            'quantity_in_stock': quantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update the stock value on the page
+        document.getElementById('stock_value').innerText = data.stock_value;
+    });
+});
+</script>
