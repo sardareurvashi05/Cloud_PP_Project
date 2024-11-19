@@ -26,10 +26,13 @@ SECRET_KEY = 'django-insecure-4nd^*_y+o-h*@guge#g&cbv-)yxu-wer4ghg@f&b6o&akh6p@+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['11d7a46b4bec4edb8578d48aa8f14f1a.vfs.cloud9.us-east-1.amazonaws.com']
 
 
 # Application definition
+CSRF_TRUSTED_ORIGINS = [
+    "https://11d7a46b4bec4edb8578d48aa8f14f1a.vfs.cloud9.us-east-1.amazonaws.com",
+]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -42,6 +45,7 @@ INSTALLED_APPS = [
     'user.apps.UserConfig',
     'crispy_forms',
     'crispy_bootstrap5',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -78,13 +82,24 @@ WSGI_APPLICATION = 'inventoryproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
+"""DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
+}"""
 
+# RDS Connections
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'InventoryManagement',  # Replace with your RDS database name
+        'USER': 'IM',       # Replace with your RDS master username
+        'PASSWORD': 'IMProj12345',   # Replace with your RDS master password
+        'HOST': 'my-rds-instance.croi4ikskqyu.us-east-1.rds.amazonaws.com',  # Replace with your RDS endpoint
+        'PORT': '5432',                # Default PostgreSQL port
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -144,4 +159,10 @@ EMAIL_USE_TLS= True
 EMAIL_HOST_USER= 'urvashisardare@gmail.com'
 EMAIL_HOST_PASSWORD='9969113094'
 
-DEFAULT_FILE_STORAGE='storage.backends.s3boto3.s3Boto3Storage'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+#Setting s3 configuration
+AWS_STORAGE_BUCKET_NAME = 'inventorymanagement-bucket'
+AWS_LOCATION = 'media/profile_pictures'
+AWS_S3_REGION_NAME = 'us-east-1'
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.us-east-1.amazonaws.com'
