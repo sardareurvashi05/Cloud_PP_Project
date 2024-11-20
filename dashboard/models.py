@@ -46,5 +46,5 @@ class Order(models.Model):
         verbose_name_plural ='Order'
 
     def __str__(self):
-        return f'{self.product} ordered by {self.staff.username}'
+        return f'{self.product} ordered by {self.staff}'
     

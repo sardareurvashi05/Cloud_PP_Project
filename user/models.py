@@ -13,7 +13,6 @@ class Profile(models.Model):
     def __str__(self):
         return f'{self.staff} Profile'
 
-
 class Product(models.Model):
     name = models.CharField(max_length=255)
     category = models.CharField(max_length=255)

@@ -5,56 +5,9 @@ from .models import Profile
 from django.contrib.auth.decorators import login_required
 from .s3_utils import upload_to_s3,get_profile_picture
 from urllib.parse import unquote,quote
-from .sns_utils import publish_to_sns
 from . import views
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .forms import OrderRequestForm
-from user.sns_utils import publish_to_sns, subscribe_email_to_topic, check_if_subscribed
-
-def make_request(request):
-    if request.method == 'POST':
-        form = OrderRequestForm(request.POST)
-        if form.is_valid():
-            try:
-                # Create order and associate it with the logged-in user
-                order = form.save(commit=False)
-                order.staff = request.user
-                order.save()  # Save the order and assign an ID
-                
-                # Create the SNS message
-                message = (
-                    f"New order request from {request.user.username}.\n"
-                    f"Product: {order.product.name},\n"
-                    f"Quantity: {order.order_quantity},\n"
-                    f"Order ID: {order.id}"
-                )
-                subject = "New Order Request"
-                
-                # Publish to SNS
-                topic_arn = 'arn:aws:sns:us-east-1:763605845924:my-inventory-reports-topic'
-                
-                admin_email = 'admin@gmail.com'
-                subscribe_email_to_topic(topic_arn, admin_email)
-                if not check_if_subscribed(topic_arn, admin_email):
-                    subscribe_email_to_topic(topic_arn, admin_email)
-                else:
-                    print("Email is already subscribed.")
-                publish_to_sns(topic_arn, message, subject)
-
-                # Success message and redirect
-                messages.success(request, "Order request submitted successfully and notification sent.")
-                return redirect('success_page')  # Replace 'success_page' with your success view name
-            except Exception as e:
-                # Log the error and show an error message
-                print(f"Error sending SNS notification: {e}")
-                messages.error(request, "Order request submitted but failed to send notification.")
-        else:
-            messages.error(request, "Invalid form submission.")
-    else:
-        form = OrderRequestForm()
-
-    return render(request, 'user/staff_index.html', {'form': form})
 
 # Create your views here.
 def register(request):

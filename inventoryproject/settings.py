@@ -166,3 +166,8 @@ AWS_LOCATION = 'media/profile_pictures'
 AWS_S3_REGION_NAME = 'us-east-1'
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.us-east-1.amazonaws.com'
+
+#settings for SQS
+AWS_SQS_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/763605845924/InventoryReportQueue"
+
+#

@@ -11,6 +11,7 @@ import json
 import openpyxl
 from openpyxl.styles import Font, Alignment
 from django.http import HttpResponse
+from user.sqs_service import send_message_to_sqs
   
 
 # Helper function to calculate product details
@@ -34,8 +35,21 @@ def index(request):
         instance = form.save(commit=False)
         instance.staff = request.user
         instance.save()
-        product_name = form.cleaned_data.get('name')
+        product = form.cleaned_data.get('product')
+        product_name = product.name  # Access the name attribute of the product
         messages.success(request, f'{product_name} has been added')
+        
+         # Prepare email data to send to SQS
+        email_message = {
+            "email": request.user.email,  # Replace with actual recipient email
+            "subject": "Order Confirmation",
+            "body": f"Your order for {product_name} has been placed successfully.",
+        }
+        print(email_message)
+        # Send email data to SQS
+        message_body = json.dumps(email_message)
+        response = send_message_to_sqs(message_body)
+        print(response)
         return redirect('dashboard-index')
     
     context = {
