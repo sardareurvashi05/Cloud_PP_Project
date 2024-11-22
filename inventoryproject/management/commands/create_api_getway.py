@@ -1,13 +1,14 @@
 import boto3
+import time
 
-LAMBDA_FUNCTION_NAME='SQSLambdaFunctionInventoryManagement'
+LAMBDA_FUNCTION_NAME='SQSSNSLambdaFunctionInventoryManagement'
 
 def create_api_gateway(lambda_function_arn):
     apigateway_client = boto3.client('apigateway', region_name='us-east-1')
 
     # Create a new REST API
     api_response = apigateway_client.create_rest_api(
-        name='SQSAPIGatewayLambda',
+        name='SQSSNSAPIGatewayLambda-InventoryManagement',
         description='API Gateway for Lambda',
         endpointConfiguration={
             'types': ['REGIONAL']
@@ -25,7 +26,7 @@ def create_api_gateway(lambda_function_arn):
     resource_response = apigateway_client.create_resource(
         restApiId=api_id,
         parentId=root_resource_id,
-        pathPart='myresource'
+        pathPart='sendemail'
     )
     resource_id = resource_response['id']
 
@@ -51,7 +52,7 @@ def create_api_gateway(lambda_function_arn):
     lambda_client = boto3.client('lambda')
     lambda_client.add_permission(
         FunctionName=LAMBDA_FUNCTION_NAME,
-        StatementId='SNSapigateway-access',
+        StatementId='SNSapigateway-access' + str(int(time.time())),
         Action='lambda:InvokeFunction',
         Principal='apigateway.amazonaws.com'
     )
@@ -62,9 +63,9 @@ def create_api_gateway(lambda_function_arn):
         stageName='prod'
     )
     
-    print(f"API Gateway created with URL: https://{api_id}.execute-api.us-east-1.amazonaws.com/prod/myresource")
+    print(f"API Gateway created with URL: https://{api_id}.execute-api.us-east-1.amazonaws.com/prod/sendemail")
     
 if __name__ == "__main__":
-    lambda_arn = 'arn:aws:lambda:us-east-1:763605845924:function:SQSLambdaFunctionInventoryManagement'
+    lambda_arn = 'arn:aws:lambda:us-east-1:763605845924:function:SQSSNSLambdaFunctionInventoryManagement'
     create_api_gateway(lambda_arn)
         

@@ -12,7 +12,7 @@ import openpyxl
 from openpyxl.styles import Font, Alignment
 from django.http import HttpResponse
 from user.sqs_service import send_message_to_sqs
-  
+from user.gateway_utils import sendEmail 
 
 # Helper function to calculate product details
 def get_product_details(product):
@@ -50,6 +50,8 @@ def index(request):
         message_body = json.dumps(email_message)
         response = send_message_to_sqs(message_body)
         print(response)
+        status_code = sendEmail()
+        print(f"Status code: {status_code} ")
         return redirect('dashboard-index')
     
     context = {

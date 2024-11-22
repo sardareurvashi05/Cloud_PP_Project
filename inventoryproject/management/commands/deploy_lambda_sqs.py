@@ -4,8 +4,8 @@ import os
 
 ROLE_ARN = 'arn:aws:iam::763605845924:role/LabRole'
 SQS_QUEUE_ARN='arn:aws:sqs:us-east-1:763605845924:InventoryReportQueue'
-LAMBDA_FUNCTION_NAME='SQSLambdaFunctionInventoryManagement'
-
+LAMBDA_FUNCTION_NAME='SQSSNSLambdaFunctionInventoryManagement'
+#SNS_QUEUE_ARN = 'arn:aws:sns:us-east-1:763605845924:SNSTopicInventory'
 def create_lambda_function():
     lambda_client = boto3.client('lambda', region_name='us-east-1')
     
@@ -21,7 +21,7 @@ def create_lambda_function():
             FunctionName=LAMBDA_FUNCTION_NAME,
             Runtime='python3.8',
             Role=ROLE_ARN,
-            Handler='lambda_function.process_sqs_messages',
+            Handler='lambda_function.lambda_handler',
             Code={'ZipFile': zip_file.read()}
         )
     print("Lambda Function Created:", lambda_response)
@@ -38,12 +38,12 @@ def create_lambda_function():
     
     # Link Lambda with SQS
 
-    lambda_client.create_event_source_mapping(
+    """lambda_client.create_event_source_mapping(
         EventSourceArn=SQS_QUEUE_ARN,
         FunctionName=LAMBDA_FUNCTION_NAME,
         BatchSize=1,
         Enabled=True
-    )
+    )"""
 
 
 if __name__ == "__main__":

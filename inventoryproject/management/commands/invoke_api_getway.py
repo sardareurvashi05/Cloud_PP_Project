@@ -12,7 +12,7 @@ credentials = session.get_credentials().get_frozen_credentials()
 
 aws_auth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
 
-url = "https://c7p0q9gyq8.execute-api.us-east-1.amazonaws.com/prod/myresource"
+url = "https://z3w0exei46.execute-api.us-east-1.amazonaws.com/prod/sendemail"
 
 # Make the request using signed headers
 response = requests.get(url, auth=aws_auth)

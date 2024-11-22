@@ -1,97 +1,74 @@
 import boto3
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 import json
-import os
 
-# Configure SQS and SES (Yahoo SMTP in your case)
-SQS_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/763605845924/InventoryReportQueue'
-SMTP_SERVER = 'smtp.mail.yahoo.com'
-SMTP_PORT = 465  # or 587 for TLS
-
-
-def get_secret():
-    SMTP_USER = 'urvashisardare@yahoo.com'
-    SMTP_PASSWORD = 'Upks@0589'
-    return SMTP_USER, SMTP_PASSWORD
-
-def receive_message_from_sqs():
-    # Create an SQS client
-    sqs_client = boto3.client('sqs', region_name='us-east-1')  # Use your region
-    
-    # Receive messages from the SQS queue
-    response = sqs_client.receive_message(
-        QueueUrl=SQS_QUEUE_URL,
-        AttributeNames=['All'],
-        MaxNumberOfMessages=1,
-        MessageAttributeNames=['All'],
-        WaitTimeSeconds=20  # Long poll to wait for a message
-    )
-    
-    if 'Messages' in response:
-        # Get the message from the queue
-        message = response['Messages'][0]
-        receipt_handle = message['ReceiptHandle']
-        
-        # Delete the message from the queue after processing it
-        sqs_client.delete_message(
-            QueueUrl=SQS_QUEUE_URL,
-            ReceiptHandle=receipt_handle
-        )
-        
-        return json.loads(message['Body'])  # Assuming the body contains the email details in JSON format
-    
-    return None
-
-def send_email(to_address, subject, body):
-    SMTP_USER, SMTP_PASSWORD = get_secret()
-
-    # Create the email
-    msg = MIMEMultipart()
-    msg['From'] = SMTP_USER
-    msg['To'] = to_address
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
-
-    # Connect to the SMTP server and send the email
-    try:
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()  # Secure the connection
-        server.login(SMTP_USER, SMTP_PASSWORD)
-        text = msg.as_string()
-        server.sendmail(SMTP_USER, to_address, text)
-        server.quit()
-        print(f"Email sent to {to_address}")
-    except Exception as e:
-        print(f"Failed to send email: {e}")
-
-def process_sqs_messages(event, context):
-    # Receive and process the SQS message
-    message_data = receive_message_from_sqs()
-    
-    if message_data:
-        to_address = message_data.get('email')
-        subject = message_data.get('subject')
-        body = message_data.get('body')
-        
-        if to_address and subject and body:
-            # Send the email
-            send_email(to_address, subject, body)
-        else:
-            print("Invalid message data: Missing email, subject, or body.")
-    else:
-        print("No new messages in SQS.")
+sqs_client = boto3.client('sqs')
+sns_client = boto3.client('sns')
 
 def lambda_handler(event, context):
-    # Call process_sqs_messages from the handler
-    process_sqs_messages(event, context)
-    
+    sqs_queue_url = 'https://sqs.us-east-1.amazonaws.com/763605845924/InventoryReportQueue'
+    sns_topic_arn = 'arn:aws:sns:us-east-1:763605845924:SNSTopicInventory'
+    email_address = 'urvashisardare@yahoo.com'
+
+    try:
+        # Ensure email subscription
+        ensure_email_subscription(sns_topic_arn, email_address)
+
+        # Receive messages from SQS
+        response = sqs_client.receive_message(
+            QueueUrl=sqs_queue_url,
+            MaxNumberOfMessages=5,
+            WaitTimeSeconds=10  # Enable long polling
+        )
+        print(f"Raw SQS response: {response}")
+
+        # Process messages
+        if "Messages" in response:
+            for message in response["Messages"]:
+                message_body = message["Body"]
+                receipt_handle = message["ReceiptHandle"]
+                message_text = json.loads(message_body)
+                # Ensure email subscription
+                ensure_email_subscription(sns_topic_arn, message_text["email"])
+                # Publish to SNS
+                sns_response = sns_client.publish(
+                    TopicArn=sns_topic_arn,
+                    Message=message_text["body"],
+                    Subject = message_text["subject"]
+                )
+                print(f"Published message to SNS: {sns_response['MessageId']}")
+
+                # Delete the message from SQS
+                sqs_client.delete_message(
+                    QueueUrl=sqs_queue_url,
+                    ReceiptHandle=receipt_handle
+                )
+                print(f"Deleted message from SQS: {message_body}")
+        else:
+            print("No messages in the queue.")
+
+    except Exception as e:
+        print(f"Error processing messages: {e}")
+
+    return {
+        "statusCode": 200,
+        "body": json.dumps("Function executed successfully!")
+    }
 
 
-# Run the function with mock data
-if __name__ == "__main__":
-    mock_event = {}  # Simulate the event that would be passed by Lambda
-    mock_context = None  # Context is optional for most Lambda functions
-    lambda_handler(mock_event, mock_context)
-    
+def ensure_email_subscription(topic_arn, email):
+    try:
+        subscriptions = sns_client.list_subscriptions_by_topic(TopicArn=topic_arn)['Subscriptions']
+        for subscription in subscriptions:
+            if subscription['Endpoint'] == email and subscription['Protocol'] == 'email':
+                print(f"Email {email} is already subscribed.")
+                return
+
+        sns_client.subscribe(
+            TopicArn=topic_arn,
+            Protocol='email',
+            Endpoint=email
+        )
+        print(f"Confirmation email sent to {email}.")
+    except Exception as e:
+        print(f"Error ensuring email subscription: {e}")
+        
