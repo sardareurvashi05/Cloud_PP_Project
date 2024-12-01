@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from .models import Product, Order
 from .forms import ProductForm, OrderForm
-from libs.product_calculator import calculate_stock_value, calculate_discounted_price, check_reorder_status, generate_inventory_report
+from libs.product_calculator import calculate_stock_value,generate_audit_report, calculate_discounted_price, check_reorder_status, generate_inventory_report
 import json
 import openpyxl
 from openpyxl.styles import Font, Alignment
@@ -88,6 +88,7 @@ def staff_detail(request, pk):
 
 
 @login_required
+@audit_log(action_type="DELETE", object_type="Product", user=None)
 def product_delete(request, pk):
     item = get_object_or_404(Product, id=pk)
     if request.method == 'POST':
@@ -97,8 +98,8 @@ def product_delete(request, pk):
     return render(request, 'dashboard/product_delete.html', {'item': item})
 
 
-#@login_required
-@audit_log(action_type="CREATE", object_type="User", user=None)
+@login_required
+@audit_log(action_type="UPDATE", object_type="Product", user=None)
 def product_update(request, pk):
     item = get_object_or_404(Product, id=pk)
     form = ProductForm(request.POST or None, instance=item)
@@ -110,8 +111,8 @@ def product_update(request, pk):
     return render(request, 'dashboard/product_update.html', {'form': form})
 
 
-#@login_required
-@audit_log(action_type="CREATE", object_type="User", user=None)
+@login_required
+@audit_log(action_type="CREATE", object_type="Product", user=None)
 def product(request):
     items = Product.objects.all()
     workers_count = User.objects.all().count()
@@ -158,6 +159,15 @@ def product_list(request):
         'inventory_report': inventory_report
     })
 
+@login_required
+def audit_trail_list(request):
+    from dashboard.models import Audit_Log
+    records = Audit_Log.objects.all()
+    audit_report = generate_audit_report(records)
+    return render(request, 'dashboard/audit_trail.html', {
+        'records': records,
+        'audit_report': audit_report
+    })
 
 @login_required
 def product_detail(request, product_id):
@@ -186,41 +196,30 @@ def recalculate_stock(request, product_id):
 
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
-def export_to_excel(request):
-    # Create a new workbook and select the active worksheet
+def show_audit_trail(request):
+    # Display audit trail 
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "Product List"
+    ws.title = "Audit Trail"
 
     # Define the header
-    headers = ["Product Name", "Stock Value", "Discounted Price", "Reorder Status"]
+    headers = ["User", "Action", "Details", "Model" , "Timestamp"]
     ws.append(headers)
-
-    # Style the header
+     # Style the header
     for cell in ws[1]:
         cell.font = Font(bold=True)
         cell.alignment = Alignment(horizontal="center")
+        
+    from dashboard.models import Audit_Log
+    records = Audit_Log.objects.all()
 
-    # Retrieve data and add rows to the worksheet
-    for product in Product.objects.all():  # Fetch all Product objects
-        ws.append([
-            product.name,
-            product.stock_value,  # Accessing the computed property
-            product.discounted_price,  # Accessing the computed property
-            product.reorder_status  # Accessing the computed property
-        ])
-
-    # Set response headers to make it downloadable
-    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    response["Content-Disposition"] = 'attachment; filename="Product_List.xlsx"'
-
-    # Save the workbook to the response
+    for record in records:
+        ws.append([record.user,record.action_type,record.details,record.object_type,record.timestamp])
     wb.save(response)
     return response
 
 
-
-"""def export_to_excel(request):
+def export_to_excel(request):
     # Create a new workbook and select the active worksheet
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -246,4 +245,4 @@ def export_to_excel(request):
 
     # Save the workbook to the response
     wb.save(response)
-    return response"""
+    return response

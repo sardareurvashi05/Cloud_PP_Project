@@ -11,6 +11,7 @@ urlpatterns =[
     path('product/', views.product, name='dashboard-product'),
     path('product/delete/<int:pk>/', views.product_delete, name='dashboard-product-delete'),
     path('product/list/', views.product_list, name='dashboard-product-list'),
+    path('audit/list/', views.audit_trail_list, name='dashboard-audit-list'),
     path('product/update/<int:pk>/', views.product_update, name='dashboard-product-update'),
     path('order/', views.order, name='dashboard-order'),
     path('export-excel/', views.export_to_excel, name='export_to_excel'),

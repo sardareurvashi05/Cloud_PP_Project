@@ -44,3 +44,18 @@ def generate_inventory_report(products, include_discounted_price=True):
         })
     
     return report
+    
+def generate_audit_report(audits):
+    """Generate an audir report ."""
+    report = []
+    for record in audits:
+        
+        report.append({
+            'user': record.user,
+            'action_type': record.action_type,
+            'details': record.details,
+            'object_type': record.object_type,
+            'timestamp':record.timestamp
+        })
+    
+    return report

@@ -61,11 +61,11 @@ class Order(models.Model):
         return f'{self.product} ordered by {self.staff}'
         
 
-class AuditLog(models.Model):
+class Audit_Log(models.Model):
     action_type = models.CharField(max_length=255)
     user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
     object_type = models.CharField(max_length=255)
-    object_id = models.PositiveIntegerField()  # You could use a generic FK here if needed
+    object_id = models.AutoField(primary_key=True)  # You could use a generic FK here if needed
     timestamp = models.DateTimeField(auto_now_add=True)
     details = models.JSONField()  # To store any extra details as a JSON object
 
