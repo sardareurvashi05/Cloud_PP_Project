@@ -152,6 +152,7 @@ LOGIN_URL= 'user-login'
 MEDIA_ROOT= (BASE_DIR/ 'media')
 MEDIA_URL='/media/'
 
+
 EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend'  
 EMAIL_HOST='smtp.gmail.com'
 EMAIL_PORT=587
@@ -171,3 +172,25 @@ AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.us-east-1.amazonaws.com'
 AWS_SQS_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/763605845924/InventoryReportQueue"
 
 #
+"""LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'audit_trail': {  # Add your app's logger if needed
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}"""

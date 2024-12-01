@@ -3,6 +3,7 @@ from sre_constants import CATEGORY
 from tabnanny import verbose
 from django.db import models
 from django.contrib.auth.models import User
+from decimal import Decimal
 
 CATEGORY = [('Electronics', 'Electronics'), ('Furniture', 'Furniture'), ('Clothing', 'Clothing')]
 
@@ -20,22 +21,33 @@ class Product(models.Model):
 
     def __str__(self):
         return f'{self.name} - {self.quantity_in_stock}'
-
+    
     @property
     def stock_value(self):
         """Calculate and return the total stock value."""
-        return self.price * self.quantity_in_stock
-
+        return Decimal(self.price) * Decimal(self.quantity_in_stock)
     @property
     def discounted_price(self):
         """Calculate and return the discounted price."""
         return self.price - (self.price * (self.discount / 100))
-
-    @property
+    
     def reorder_status(self):
         """Check if reorder is needed based on quantity and threshold."""
         return 'Reorder Needed' if self.quantity_in_stock < self.reorder_threshold else 'Stock Sufficient'
 
+    
+    def calculate_stock_value(self):
+        """Calculate the total stock value."""
+        return Decimal(self.price) * Decimal(self.quantity_in_stock)
+
+    def calculate_discounted_price(self):
+        """Calculate the discounted price."""
+        return Decimal(self.price) - (Decimal(self.price) * (self.discount / 100))
+
+    def check_reorder_status(self):
+        """Check if the product stock is below the reorder threshold."""
+        return self.quantity_in_stock < self.reorder_threshold
+        
 class Order(models.Model):
     product =models.ForeignKey(Product, on_delete=models.CASCADE ,null=True)
     staff=models.ForeignKey(User, models.CASCADE ,null=True)
@@ -47,4 +59,16 @@ class Order(models.Model):
 
     def __str__(self):
         return f'{self.product} ordered by {self.staff}'
+        
+
+class AuditLog(models.Model):
+    action_type = models.CharField(max_length=255)
+    user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True)
+    object_type = models.CharField(max_length=255)
+    object_id = models.PositiveIntegerField()  # You could use a generic FK here if needed
+    timestamp = models.DateTimeField(auto_now_add=True)
+    details = models.JSONField()  # To store any extra details as a JSON object
+
+    def __str__(self):
+        return f"{self.action_type} - {self.object_type} - {self.timestamp}"
     

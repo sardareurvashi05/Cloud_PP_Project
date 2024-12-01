@@ -13,6 +13,7 @@ from openpyxl.styles import Font, Alignment
 from django.http import HttpResponse
 from user.sqs_service import send_message_to_sqs
 from user.gateway_utils import sendEmail 
+from .audit_log import audit_log
 
 # Helper function to calculate product details
 def get_product_details(product):
@@ -96,7 +97,8 @@ def product_delete(request, pk):
     return render(request, 'dashboard/product_delete.html', {'item': item})
 
 
-@login_required
+#@login_required
+@audit_log(action_type="CREATE", object_type="User", user=None)
 def product_update(request, pk):
     item = get_object_or_404(Product, id=pk)
     form = ProductForm(request.POST or None, instance=item)
@@ -108,7 +110,8 @@ def product_update(request, pk):
     return render(request, 'dashboard/product_update.html', {'form': form})
 
 
-@login_required
+#@login_required
+@audit_log(action_type="CREATE", object_type="User", user=None)
 def product(request):
     items = Product.objects.all()
     workers_count = User.objects.all().count()
@@ -199,9 +202,13 @@ def export_to_excel(request):
         cell.alignment = Alignment(horizontal="center")
 
     # Retrieve data and add rows to the worksheet
-    for report in Product.objects.all():  # Replace with your queryset
-        reorder_status = "Reorder Needed" if report.reorder_status == 'Reorder Needed' else "In Stock"
-        ws.append([report.name, report.stock_value, report.discounted_price, reorder_status])
+    for product in Product.objects.all():  # Fetch all Product objects
+        ws.append([
+            product.name,
+            product.stock_value,  # Accessing the computed property
+            product.discounted_price,  # Accessing the computed property
+            product.reorder_status  # Accessing the computed property
+        ])
 
     # Set response headers to make it downloadable
     response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -210,3 +217,33 @@ def export_to_excel(request):
     # Save the workbook to the response
     wb.save(response)
     return response
+
+
+
+"""def export_to_excel(request):
+    # Create a new workbook and select the active worksheet
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Product List"
+
+    # Define the header
+    headers = ["Product Name", "Stock Value", "Discounted Price", "Reorder Status"]
+    ws.append(headers)
+
+    # Style the header
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal="center")
+
+    # Retrieve data and add rows to the worksheet
+    for report in Product.objects.all():  # Replace with your queryset
+        reorder_status = "Reorder Needed" if report.reorder_status == 'Reorder Needed' else "In Stock"
+        ws.append([report.name, report.Product.stock_value, report.discounted_price, reorder_status])
+
+    # Set response headers to make it downloadable
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = 'attachment; filename="Product_List.xlsx"'
+
+    # Save the workbook to the response
+    wb.save(response)
+    return response"""
