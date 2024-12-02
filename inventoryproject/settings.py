@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-4nd^*_y+o-h*@guge#g&cbv-)yxu-wer4ghg@f&b6o&akh6p@+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['11d7a46b4bec4edb8578d48aa8f14f1a.vfs.cloud9.us-east-1.amazonaws.com']
+ALLOWED_HOSTS = ['a1eb04acc947f6677006f6820432294ed47c812f2b4dd83b94b3faeb603fdf96']
 
 
 # Application definition
@@ -147,7 +147,7 @@ STATIC_ROOT= (BASE_DIR/"asert/")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL ='dashboard-index'
+LOGIN_REDIRECT_URL ='user-login'
 LOGIN_URL= 'user-login'
 MEDIA_ROOT= (BASE_DIR/ 'media')
 MEDIA_URL='/media/'
@@ -170,27 +170,3 @@ AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.us-east-1.amazonaws.com'
 
 #settings for SQS
 AWS_SQS_QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/763605845924/InventoryReportQueue"
-
-#
-"""LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'audit_trail': {  # Add your app's logger if needed
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}"""
