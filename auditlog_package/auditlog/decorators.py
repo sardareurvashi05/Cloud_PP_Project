@@ -19,9 +19,9 @@ def audit_log(action_type: str, object_type: str, user: Optional[User] = None) -
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Assign user from the first argument if it's an HttpRequest object (commonly passed as `request` in views)
-            if user is None:
-                if hasattr(args[0], 'user'):
-                    user = args[0].user  # Extract user from request or object
+            user = None
+            if hasattr(args[0], 'user'):
+                user = args[0].user  # Extract user from request or object
 
             # Ensure that the user is a valid User object, fallback to None if not
             if not isinstance(user, User):

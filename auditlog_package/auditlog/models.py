@@ -19,7 +19,7 @@ class Audit_Log(models.Model):
     action_type = models.CharField(max_length=255)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     object_type = models.CharField(max_length=255)
-    object_id = models.PositiveIntegerField()
+    object_id = models.AutoField(primary_key=True) 
     timestamp = models.DateTimeField(auto_now_add=True)
     details = models.JSONField(default=dict)
 
