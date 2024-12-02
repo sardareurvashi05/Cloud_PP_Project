@@ -6,6 +6,8 @@ A simple Django package for logging user actions on objects within the applicati
 
 Install via pip:
 
+pip install audit-trail-logger
+
 1. Add auditlog to INSTALLED_APPS in your Django settings. 
 2. Use the audit_log decorator on your views or model methods.
     from auditlog.decorators import audit_log 
