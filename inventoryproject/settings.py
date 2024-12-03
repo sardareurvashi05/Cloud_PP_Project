@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 from xml.etree.ElementTree import C14NWriterTarget
 
@@ -26,8 +26,8 @@ SECRET_KEY = 'django-insecure-4nd^*_y+o-h*@guge#g&cbv-)yxu-wer4ghg@f&b6o&akh6p@+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['11d7a46b4bec4edb8578d48aa8f14f1a.vfs.cloud9.us-east-1.amazonaws.com']
-
+#ALLOWED_HOSTS = ['11d7a46b4bec4edb8578d48aa8f14f1a.vfs.cloud9.us-east-1.amazonaws.com']
+ALLOWED_HOSTS = ['inventorysolution.amplifyapp.com', 'localhost']
 
 # Application definition
 CSRF_TRUSTED_ORIGINS = [
@@ -142,6 +142,7 @@ STATICFILES_DIRS =[
     BASE_DIR/ "static"
     ]
 STATIC_ROOT= (BASE_DIR/"asert/")
+#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
